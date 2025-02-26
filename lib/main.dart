@@ -123,207 +123,315 @@ class HomePageState extends State<HomePage> {
 class StatsScreen extends StatelessWidget{
   const StatsScreen({super.key});
 
-  @override
-  Widget build(BuildContext context){
-    // final provider = Provider.of<FitnessProvider>(context);
+   @override
+  Widget build(BuildContext context) {
     return Scaffold(
-       appBar: AppBar(
-          title: const Center(
-            child: Text('Fitness Summary'),
-          ),
+      appBar: AppBar(
+        title: const Center(
+          child: Text('Fitness Summary'),
         ),
+      ),
       body: Consumer<FitnessProvider>(
-        builder: (context, provider, child){
-            if (provider.stepsData.isNotEmpty) {
-              var latestData = provider.stepsData.last;
-              DateTime date = latestData['date'] is String
-              ? DateTime.parse(latestData['date']) // Parse if it's a string
-              : latestData['date']; // Already DateTime
-              DateTime latestDate = latestData['date'];
-              int latestSteps = latestData['steps'];
-              String formattedDate = DateFormat('yyyy-MM-dd').format(latestData['date']);
-              int latestWater = latestData['water']; 
+        builder: (context, provider, child) {
+            DateTime today = DateTime.now();
+          String formattedToday = DateFormat('EEEE, dd-MMMM-yyyy').format(today);
+
+          var todayStepsData = provider.stepsData.firstWhere(
+            (entry) => DateFormat('EEEE, dd-MMMM-yyyy').format(entry['date']) == formattedToday,
+            orElse: () => {'date': today, 'steps': 0},
+          );
+
+          var todayWaterData = provider.waterData.firstWhere(
+            (entry) => DateFormat('EEEE, dd-MMMM-yyyy').format(entry['date']) == formattedToday,
+            orElse: () => {'date': today, 'water': 0.0},
+          );
             
-        return Padding( 
-          padding: const EdgeInsets.all(16),
-        child: Center(
-          child: Column(
-            children: [
-              Text(
-                formattedDate,
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blueGrey[700],
-                ),
-              ),
-              const SizedBox(
-                height: 20
-              ),
-
-              Expanded(
-                child: SizedBox(
-                  height: 200,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        // mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Title(color: Colors.black, 
-                            child: Text("Latest Steps",
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey[700], 
-                              )
-                            )
-                          ),
-
-                          Expanded(
-                            child: provider.stepsData.isNotEmpty
-                              ? Center(
-                                  child: Column( 
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children:[
-                                    Text(
-                                      '$latestSteps Steps',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.teal[800],
+        int totalSteps = provider.stepsData.fold(0, (sum, entry) => sum + (entry['steps'] as int));
+        double totalWater = provider.waterData.fold(0.0, (sum, entry) => sum + (entry['water'] as double));
+          
+return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Center(
+              child: Column(
+                children: [
+                  Text(
+                    formattedToday,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 200,
+                                  width: MediaQuery.of(context).size.width * 0.65,
+                                  child: Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Title(
+                                            color: Colors.black,
+                                            child: Text(
+                                              "Today's Steps",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blueGrey[700],
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: provider.stepsData.isNotEmpty
+                                                ? Center(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          '${todayStepsData['steps']} Steps',
+                                                          style: TextStyle(
+                                                            fontSize: 20,
+                                                            color: Colors.teal[800],
+                                                          ),
+                                                        ),
+                                                        if (todayStepsData['steps'] < 4000)
+                                                          Text(
+                                                            "Bad",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.red[300],
+                                                            ),
+                                                          )
+                                                        else if (todayStepsData['steps'] >= 4000 && todayStepsData['steps'] <= 8000)
+                                                          Text(
+                                                            "Average",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.yellow[600],
+                                                            ),
+                                                          )
+                                                        else
+                                                          Text(
+                                                            "Good",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.green[600],
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      "None",
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        color: Colors.grey[400],
+                                                      ),
+                                                    ),
+                                                  ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                if(provider.stepsData.last['steps'] < 4000)
-                                Text("bad",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.red[300],
                                   ),
-                                )
-                                else if(provider.stepsData.last['steps'] >= 4000 && provider.stepsData.last['steps'] <=8000)
-                                  Text("Average",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.yellow[600]
-                                  ),
-                                )
-                                else
-                                  Text("Good",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.green[600]
-                                  ),
-                                )    
-                              ],
-                            )
-                          )
-                        : Center(
-                            child: Text(
-                            "No Data",
-                            style: TextStyle(
-                              fontSize: 20,
-                                color: Colors.grey[400],
+                                ),
                               ),
-                            ),
-                          )
-                          )
-                        ],
-                      )
-                    )
-                  )
-                )
-              ),
-              Expanded(
-                child: SizedBox(
-                  height: 200,
-                  width: MediaQuery.of(context).size.width * 0.5,
-                  child: Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Title(color: Colors.black, 
-                            child: Text("Latest Liter of Water",
-                              style: TextStyle(
-                                fontSize: 26,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey[700], 
-                              )
-                            )
-                          ),
-
-                          Expanded(
-                            child: provider.waterData.isNotEmpty
-                              ? Center(
-                                  child: Column( 
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children:[
-                                    Text(
-                                      '$latestWater Litre',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        color: Colors.teal[800],
+                              const SizedBox(height: 10),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 200,
+                                  width: MediaQuery.of(context).size.width * 0.65,
+                                  child: Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Title(
+                                            color: Colors.black,
+                                            child: Text(
+                                              "Today's Litre of Water",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color : Colors.blueGrey[700],
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: provider.waterData.isNotEmpty
+                                                ? Center(
+                                                    child: Column(
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          '${todayWaterData['water']} Litre',
+                                                          style: TextStyle(
+                                                            fontSize: 20,
+                                                            color: Colors.teal[800],
+                                                          ),
+                                                        ),
+                                                        if (todayWaterData['water'] < 1.5)
+                                                          Text(
+                                                            "Bad",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.red[300],
+                                                            ),
+                                                          )
+                                                        else if (todayWaterData['water'] >= 1.5 && todayWaterData['water'] <= 2)
+                                                          Text(
+                                                            "Average",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.yellow[600],
+                                                            ),
+                                                          )
+                                                        else
+                                                          Text(
+                                                            "Good",
+                                                            style: TextStyle(
+                                                              fontSize: 16,
+                                                              fontStyle: FontStyle.italic,
+                                                              color: Colors.green[600],
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    ),
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      "None",
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        color: Colors.grey[400],
+                                                      ),
+                                                    ),
+                                                  ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                if(provider.waterData.last['water'] < 4000)
-                                Text("bad",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.red[300],
                                   ),
-                                )
-                                else if(provider.waterData.last['water'] >= 4000 && provider.waterData.last['water'] <=8000)
-                                  Text("Average",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontStyle: FontStyle.italic,
-                                    color: Colors.yellow[600]
-                                  ),
-                                )
-                                else
-                                  Text("Good",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.green[600]
-                                  ),
-                                )    
-                              ],
-                            )
-                          )
-                        : Center(
-                            child: Text(
-                            "No Data",
-                            style: TextStyle(
-                              fontSize: 20,
-                                color: Colors.grey[400],
+                                ),
                               ),
-                            ),
-                          )
-                          )
-                        ],
-                      )
-                    )
-                  )
-                )
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 200,
+                                  width: MediaQuery.of(context).size.width * 0.65,
+                                  child: Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Title(
+                                            color: Colors.black,
+                                            child: Text(
+                                              "Total Steps",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blueGrey[700],
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                '$totalSteps Steps',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Colors.teal[800],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Expanded(
+                                child: SizedBox(
+                                  height: 200,
+                                  width: MediaQuery.of(context).size.width * 0.65,
+                                  child: Card(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(8),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Title(
+                                            color: Colors.black,
+                                            child: Text(
+                                              "Total Water Intake",
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blueGrey[700],
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: Center(
+                                              child: Text(
+                                                '$totalWater Liters',
+                                                style: TextStyle(
+                                                  fontSize: 20,
+                                                  color: Colors.teal[800],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              ]
-            ) ,
-          ),
-        );
-        } 
-        else{
-          return Center(
-                child: CircularProgressIndicator() 
-              );
-          }
-        }
-      )
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -340,6 +448,23 @@ class StepsScreenState extends State<StepsScreen> {
   final TextEditingController dateController = TextEditingController();
   final List<Map<String, String>> stepsList = [];
 
+  final FocusNode stepsFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    stepsFocusNode.dispose();
+    super.dispose();
+  }
+
+
+  void sortDescList(){
+    stepsList.sort((a, b) {
+      DateTime dateA = DateFormat('EEEE, dd-MMMM-yyyy').parse(a['date']!);
+      DateTime dateB = DateFormat('EEEE, dd-MMMM-yyyy').parse(b['date']!);
+      return dateB.compareTo(dateA);
+    });
+  }
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -349,6 +474,76 @@ class StepsScreenState extends State<StepsScreen> {
         body: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(children: [
+            Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+            child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Total Steps",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey[700],
+                    ),
+                  ),
+                  Consumer<FitnessProvider>(
+                    builder: (context, provider, child) {
+                      int totalSteps = provider.stepsData.fold(0, (sum, entry) => sum + (entry['steps'] as int));
+                      return Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$totalSteps Steps',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.teal[800],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (totalSteps < 4000)
+                        Text(
+                          "Bad",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.red[300],
+                          ),
+                        )
+                      else if (totalSteps >= 4000 && totalSteps <= 8000)
+                        Text(
+                          "Average",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.yellow[600],
+                          ),
+                        )
+                      else
+                        Text(
+                          "Good",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.green[600],
+                          )
+                  ),
+                ],
+              );
+                    }
+            ),
+                ]
+          ),
+        ),
+            ),
+            ),
             Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -373,14 +568,14 @@ class StepsScreenState extends State<StepsScreen> {
                          if (dateController.text.isNotEmpty && stepsController.text.isNotEmpty) {
                           int steps = int.tryParse(stepsController.text) ?? 0;
                           DateTime selectedDate = DateTime.parse(dateController.text);
-                          String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                          String formattedDate = DateFormat('EEEE, dd-MMMM-yyyy').format(selectedDate);
                           
                             bool dateExists = stepsList.any((entry) => entry['date'] == formattedDate);if(dateExists){
                             setState(() {
                               int index = stepsList.indexWhere((entry) => entry['date'] == formattedDate);
                               stepsList[index] = {'date' : formattedDate, 'steps': steps.toString()};
                             });                          
-                            DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(formattedDate);
+                            DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(formattedDate);
                             Provider.of<FitnessProvider>(context, listen: false).updateSteps(steps, selectedDate); 
                           } else{
                               setState((){
@@ -397,12 +592,13 @@ class StepsScreenState extends State<StepsScreen> {
                   ),
                   Expanded(
                    child: TextField(
-                      controller:stepsController,
+                      controller: stepsController,
+                      focusNode: stepsFocusNode, 
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
                         hintText: "Enter Steps",
                         filled: true,
-                       enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
+                        enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
                         focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
                       )
                     )
@@ -417,7 +613,10 @@ class StepsScreenState extends State<StepsScreen> {
               onPressed: () {
                 if (dateController.text.isNotEmpty && stepsController.text.isNotEmpty) {
                   int steps = int.tryParse(stepsController.text) ?? 0;
-                  String formattedDate = dateController.text;
+                  String formattedDate = DateFormat('EEEE, dd-MMMM-yyyy').format(
+                  DateFormat('dd-MMMM-yyyy').parse(dateController.text),
+                );
+
                   
                   bool dateExists = stepsList.any((entry) => entry['date'] == formattedDate);
                   
@@ -426,44 +625,82 @@ class StepsScreenState extends State<StepsScreen> {
                       int index = stepsList.indexWhere((entry) => entry['date'] == formattedDate);
                       stepsList[index] = {'date': formattedDate, 'steps': steps.toString()};
                     });
-                    DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(formattedDate);
+                    DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(formattedDate);
                     Provider.of<FitnessProvider>(context, listen: false).updateSteps(steps, selectedDate);
                   } else {
                     setState(() {
                       stepsList.add({'date': formattedDate, 'steps': steps.toString()});
                     });
-                    DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(formattedDate);
-                    Provider.of<FitnessProvider>(context, listen: false).addSteps(steps, selectedDate);
                   }
+                  
+                  sortDescList();
+
+                  DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(formattedDate);
+                  Provider.of<FitnessProvider>(context, listen: false).addSteps(steps, selectedDate);
+
+                  
                 }
-                // Clear the controllers after adding
+
                 dateController.clear();
                 stepsController.clear();
               },
               child: const Text('Add Steps'),
             ),
-            const SizedBox(
-              height: 20
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: stepsList.length,
-                itemBuilder: (context,index){
-                  return ListTile(
-                    title: Text('Date: ${stepsList[index]['date']}'),
-                    subtitle: Text('Steps: ${stepsList[index]['steps']}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: (){
-                        setState(() {
-                          String date = stepsList[index]['date'] ?? '';
-                          int steps = int.tryParse(stepsList[index]['steps'] ?? '0') ?? 0;
-                          stepsList.removeAt(index);                         
-                          DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(date); 
-                          Provider.of<FitnessProvider>(context, listen: false).deleteSteps(selectedDate, steps);
-                        });
-                      }
-                    )
+            const SizedBox(height: 10),
+            
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView.builder(
+              itemCount: stepsList.length,
+              itemBuilder: (context, index) {
+                int steps = int.tryParse(stepsList[index]['steps'] ?? '0') ?? 0;
+                String status = _getStepsStatus(steps);
+
+                return ListTile(
+                  title: Text('Date: ${stepsList[index]['date']}'),
+                  subtitle: Row(
+                    children: [
+                    Text('Steps: ${stepsList[index]['steps']}'),
+                    const SizedBox(width: 10),
+                    Text(
+                      status,
+                        style: TextStyle(
+                          color: _getStatusColor(steps),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                  
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () {
+                           setState(() {
+                            dateController.text = DateFormat('dd-MMMM-yyyy').format(
+                              DateFormat('EEEE, dd-MMMM-yyyy').parse(stepsList[index]['date']!),
+                            );
+                            stepsController.text = stepsList[index]['steps']!;
+                          });
+                          FocusScope.of(context).requestFocus(stepsFocusNode);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            String date = stepsList[index]['date'] ?? '';
+                            int steps = int.tryParse(stepsList[index]['steps'] ?? '0') ?? 0;
+                            stepsList.removeAt(index);
+                            DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(date);
+                            Provider.of<FitnessProvider>(context, listen: false).deleteSteps(selectedDate, steps);
+                          });
+                        }
+                      )
+                    ]
+                  )
                   );
                 }
               )  
@@ -472,6 +709,27 @@ class StepsScreenState extends State<StepsScreen> {
         )
       ),
     );
+  }
+
+  String _getStepsStatus(int steps) {
+    if (steps < 4000) {
+      return "Bad";
+    } else if (steps >= 4000 && steps <= 8000) {
+      return "Average";
+    } else {
+      return "Good";
+    }
+  }
+
+  // Helper method to get the steps status color
+  Color _getStatusColor(int steps) {
+    if (steps < 4000) {
+      return Colors.red;
+    } else if (steps >= 4000 && steps <= 8000) {
+      return Colors.orange;
+    } else {
+      return Colors.green;
+    }
   }
 
   Future<void> selectDate(BuildContext context) async {
@@ -502,15 +760,100 @@ class WaterScreenState extends State<WaterScreen> {
   final TextEditingController dateController = TextEditingController();
   final List<Map<String, String>> waterList = [];
 
+  final FocusNode waterFocusNode = FocusNode();
+
+  @override
+  void dispose() {
+    waterFocusNode.dispose();
+    super.dispose();
+  }
+    void sortDescList(){
+    waterList.sort((a, b) {
+      DateTime dateA = DateFormat('EEEE, dd-MMMM-yyyy').parse(a['date']!);
+      DateTime dateB = DateFormat('EEEE, dd-MMMM-yyyy').parse(b['date']!);
+      return dateB.compareTo(dateA);
+    });
+  }
+
    @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Step Tracker')
+        title: const Text('Water Intake Tracker')
       ),
         body: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(children: [
+            Container(
+              width: MediaQuery.of(context).size.width * 0.9,
+              padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+            child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    "Total Water Intake",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blueGrey[700],
+                    ),
+                  ),
+                  Consumer<FitnessProvider>(
+                    builder: (context, provider, child) {
+                      double totalWater = provider.waterData.fold(0.0, (sum, entry) => sum + (entry['water'] as double));
+                      return Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        '$totalWater Liters',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.teal[800],
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      if (totalWater < 1.5)
+                        Text(
+                          "Bad",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.red[300],
+                          ),
+                        )
+                      else if (totalWater >= 1.5 && totalWater <= 2)
+                        Text(
+                          "Average",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.yellow[600],
+                          ),
+                        )
+                      else
+                        Text(
+                          "Good",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontStyle: FontStyle.italic,
+                            color: Colors.green[600],
+                          ),
+                        ),
+                      ],
+                  );
+                    }
+                ),
+                ]
+              ),
+            ),
+            ),
+          ),
             Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
@@ -535,7 +878,7 @@ class WaterScreenState extends State<WaterScreen> {
                          if (dateController.text.isNotEmpty && waterController.text.isNotEmpty) {
                           double water = double.tryParse(waterController.text) ?? 0;
                           DateTime selectedDate = DateTime.parse(dateController.text);
-                          String formattedDate = DateFormat('dd-MM-yyyy').format(selectedDate);
+                          String formattedDate = DateFormat('EEEE, dd-MMMM-yyyy').format(selectedDate);
                           
                             bool dateExists = waterList.any((entry) => entry['date'] == formattedDate);if(dateExists){
                             setState(() {
@@ -543,7 +886,7 @@ class WaterScreenState extends State<WaterScreen> {
                               waterList[index] = {'date' : formattedDate, 'water': water.toString()};
                             });
                             
-                          DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(formattedDate);
+                          DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(formattedDate);
                             Provider.of<FitnessProvider>(context, listen: false).updateWater(water, selectedDate); 
                           } else{
                               setState((){
@@ -560,10 +903,11 @@ class WaterScreenState extends State<WaterScreen> {
                   ),
                   Expanded(
                    child: TextField(
-                      controller:waterController,
+                      controller: waterController,
+                      focusNode: waterFocusNode, 
                       keyboardType: TextInputType.number,
                       decoration: const InputDecoration(
-                        hintText: "Enter water",
+                        hintText: "Enter Litre",
                         filled: true,
                        enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
                         focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.blue)),
@@ -580,7 +924,9 @@ class WaterScreenState extends State<WaterScreen> {
               onPressed: () {
                 if (dateController.text.isNotEmpty && waterController.text.isNotEmpty) {
                   double water = double.tryParse(waterController.text) ?? 0;
-                  String formattedDate = dateController.text;
+                  String formattedDate = DateFormat('EEEE, dd-MMMM-yyyy').format(
+                  DateFormat('dd-MMMM-yyyy').parse(dateController.text),
+                  );
                   
                   bool dateExists = waterList.any((entry) => entry['date'] == formattedDate);
                   
@@ -589,7 +935,7 @@ class WaterScreenState extends State<WaterScreen> {
                       int index = waterList.indexWhere((entry) => entry['date'] == formattedDate);
                       waterList[index] = {'date': formattedDate, 'water': water.toString()};
                     });    
-                    DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(formattedDate);
+                    DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(formattedDate);
                     Provider.of<FitnessProvider>(context, listen: false).updateWater(water, selectedDate);
                   } else {
                 
@@ -597,38 +943,72 @@ class WaterScreenState extends State<WaterScreen> {
                       waterList.add({'date': formattedDate, 'water': water.toString()});
                     });
                     
-                    DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(formattedDate);
-                    Provider.of<FitnessProvider>(context, listen: false).addWater(water, selectedDate);
                   }
+
+                  sortDescList();
+
+                  DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(formattedDate);
+                  Provider.of<FitnessProvider>(context, listen: false).addWater(water, selectedDate);
+
                 }
-                // Clear the controllers after adding
                 dateController.clear();
                 waterController.clear();
               },
               child: const Text('Add water'),
             ),
-            const SizedBox(
-              height: 20
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: waterList.length,
-                itemBuilder: (context,index){
-                  return ListTile(
-                    title: Text('Date: ${waterList[index]['date']}'),
-                    subtitle: Text('water: ${waterList[index]['water']} L'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: (){
-                        setState(() {
-                          String date = waterList[index]['date'] ?? '';
-                          double water = double.tryParse(waterList[index]['water'] ?? '0') ?? 0;
-                          waterList.removeAt(index);
-                          DateTime selectedDate = DateFormat('dd-MMMM-yyyy').parse(date);
-                          Provider.of<FitnessProvider>(context, listen: false).deleteWater(selectedDate, water);
-                        });
-                      }
-                    )
+            const SizedBox(height: 10),
+            
+          Expanded(
+            child: ListView.builder(
+              itemCount: waterList.length,
+              itemBuilder: (context, index) {
+                double water = double.tryParse(waterList[index]['water'] ?? '0') ?? 0;
+                String status = _getWaterStatus(water);
+
+                return ListTile(
+                  title: Text('Date: ${waterList[index]['date']}'),
+                  subtitle: Row(
+                    children: [
+                    Text('Water: ${waterList[index]['water']} L'),
+                    const SizedBox(width: 10),
+                    Text(
+                      status,
+                        style: TextStyle(
+                          color: _getStatusColor(water),
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () {
+                           setState(() {
+                            dateController.text = DateFormat('dd-MMMM-yyyy').format(
+                              DateFormat('EEEE, dd-MMMM-yyyy').parse(waterList[index]['date']!),
+                            );
+                            waterController.text = waterList[index]['water']!;
+                          });
+                          FocusScope.of(context).requestFocus(waterFocusNode);
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () {
+                          setState(() {
+                            String date = waterList[index]['date'] ?? '';
+                            double water = double.tryParse(waterList[index]['water'] ?? '0') ?? 0;
+                            waterList.removeAt(index);
+                            DateTime selectedDate = DateFormat('EEEE, dd-MMMM-yyyy').parse(date);
+                            Provider.of<FitnessProvider>(context, listen: false).deleteWater(selectedDate, water);
+                          });
+                        }
+                      )
+                    ]
+                  )
                   );
                 }
               )  
@@ -639,6 +1019,27 @@ class WaterScreenState extends State<WaterScreen> {
     );
   }
 
+  String _getWaterStatus(double water) {
+    if (water < 2.0) {
+      return "Bad";
+    } else if (water >= 2.0 && water <= 3.0) {
+      return "Average";
+    } else {
+      return "Good";
+    }
+  }
+
+  // Helper method to get the water status color
+  Color _getStatusColor(double water) {
+    if (water < 2.0) {
+      return Colors.red;
+    } else if (water >= 2.0 && water <= 3.0) {
+      return Colors.orange;
+    } else {
+      return Colors.green;
+    }
+  }
+
    Future<void> selectDate(BuildContext context) async {
     DateTime? picked = await showDatePicker(
       context: context,
@@ -646,7 +1047,7 @@ class WaterScreenState extends State<WaterScreen> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100)
     );
-    
+
     if(picked != null){
       setState(() {
         dateController.text = DateFormat('dd-MMMM-yyyy').format(picked);
